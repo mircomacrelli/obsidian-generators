@@ -1,8 +1,6 @@
 package net.mircomacrelli.obsidian.musica;
 
 
-import net.mircomacrelli.obsidian.utils.Obsidian;
-
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
@@ -10,10 +8,10 @@ import java.util.regex.Pattern;
 import static java.time.format.DateTimeFormatter.ISO_DATE;
 import static net.mircomacrelli.obsidian.utils.Obsidian.escapeString;
 import static net.mircomacrelli.obsidian.utils.Obsidian.sanitizePath;
+import static net.mircomacrelli.obsidian.utils.Obsidian.quoteBlock;
 
 
 final class Template {
-    private static final Pattern START_OF_LINE = Pattern.compile("^", Pattern.MULTILINE);
     private static final Pattern AMPERSAND = Pattern.compile(" & ");
     private static final Pattern COMMA = Pattern.compile(", ");
 
@@ -56,9 +54,7 @@ final class Template {
         return false;
     }
 
-    private static String quoteBlock(String lyrics) {
-        return START_OF_LINE.matcher(lyrics).replaceAll("> ");
-    }
+
 
     public static String generateBody(Album album) {
         StringBuilder body = new StringBuilder(65535);

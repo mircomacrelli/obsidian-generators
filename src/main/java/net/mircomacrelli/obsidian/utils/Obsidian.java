@@ -1,12 +1,13 @@
 package net.mircomacrelli.obsidian.utils;
 
 
-import java.nio.file.Path;
 import java.util.regex.Pattern;
 
 
 public final class Obsidian {
     private static final Pattern BAD_CHARACTERS = Pattern.compile("[/\\\\<>:\"|?*\u0000-\u001f]+");
+    private static final Pattern START_OF_LINE = Pattern.compile("^", Pattern.MULTILINE);
+    private static final Pattern OPEN_CRACKET = Pattern.compile("\\[");
 
     private Obsidian() {
     }
@@ -27,5 +28,9 @@ public final class Obsidian {
             return '"' + s + '"';
         }
         return s;
+    }
+
+    public static String quoteBlock(String lyrics) {
+        return OPEN_CRACKET.matcher(START_OF_LINE.matcher(lyrics).replaceAll("> ")).replaceAll("\\\\[");
     }
 }
