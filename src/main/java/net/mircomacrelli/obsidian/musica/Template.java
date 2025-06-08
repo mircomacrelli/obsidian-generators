@@ -73,7 +73,7 @@ final class Template {
             .append("title: ").append(escapeString(album.getTitle())).append('\n')
             .append("---").append('\n');
 
-        body.append('\n').append("# ").append(album.getTitle()).append('\n');
+        body.append("# ").append(album.getTitle()).append('\n');
 
         body.append('\n').append("## Tracce").append('\n');
 
