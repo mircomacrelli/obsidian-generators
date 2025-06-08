@@ -1,6 +1,8 @@
 package net.mircomacrelli.obsidian.musica;
 
 
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE;
@@ -15,20 +17,26 @@ final class Template {
     private Template() {
     }
 
-    private static String createAuthorLink(String albumArtist, String authors) {
+    private static String createAuthorLink(Set<String> seenAuthors, String albumArtist, String authors) {
         String[] first = AMPERSAND.split(authors);
         String[] second = COMMA.split(first[0]);
 
         for (int i = 1; i < second.length; i++) {
             if (!albumArtist.equals(second[i])) {
-                second[i] = "[[" + second[i] + "]]";
+                if (!seenAuthors.contains(second[i])) {
+                    seenAuthors.add(second[i]);
+                    second[i] = "[[" + second[i] + "]]";
+                }
             }
         }
 
         first[0] = String.join(", ", second);
 
         if (first.length == 2 && !albumArtist.equals(first[1])) {
-            first[1] = "[[" + first[1] + "]]";
+            if (!seenAuthors.contains(first[1])) {
+                seenAuthors.add(first[1]);
+                first[1] = "[[" + first[1] + "]]";
+            }
         }
 
         return String.join(" & ", first);
@@ -70,6 +78,7 @@ final class Template {
 
         body.append('\n').append("## Tracce").append('\n');
 
+        var seenAuthors = new TreeSet<String>();
         for (var disk : album.getDisks()) {
             if (album.getDisks().size() > 1) {
                 body.append('\n').append("### Disco ").append(disk.getNumber()).append('\n');
@@ -83,7 +92,7 @@ final class Template {
                 }
                 body.append(track.getNumber()).append(". ").append(track.getTitle());
                 if (!track.getArtist().equals(album.getArtist())) {
-                    body.append(" _by_ ").append(createAuthorLink(album.getArtist(), track.getArtist()));
+                    body.append(" _by_ ").append(createAuthorLink(seenAuthors, album.getArtist(), track.getArtist()));
                 }
                 body.append('\n');
                 lastTrack = track.getNumber();
