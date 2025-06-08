@@ -1,11 +1,14 @@
 package net.mircomacrelli.obsidian.musica;
 
 
+import net.mircomacrelli.obsidian.utils.Obsidian;
+
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE;
+import static net.mircomacrelli.obsidian.utils.Obsidian.escapeString;
 import static net.mircomacrelli.obsidian.utils.Obsidian.sanitizePath;
 
 
@@ -71,7 +74,7 @@ final class Template {
             .append("listened: false").append('\n')
             .append("price:").append('\n')
             .append("rating:").append('\n')
-            .append("title: ").append(album.getTitle()).append('\n')
+            .append("title: ").append(escapeString(album.getTitle())).append('\n')
             .append("---").append('\n');
 
         body.append('\n').append("# ").append(album.getTitle()).append('\n');

@@ -21,4 +21,11 @@ public final class Obsidian {
         }
         return temp;
     }
+
+    public static String escapeString(String s) {
+        if (s.contains(":")) {
+            return '"' + s + '"';
+        }
+        return s;
+    }
 }
