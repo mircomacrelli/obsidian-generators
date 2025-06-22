@@ -18,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Set;
 
 import static java.nio.file.Files.newBufferedWriter;
@@ -67,8 +68,11 @@ public final class AlbumGenerator {
         album.setTitle(tag.getFirst(Mp4FieldKey.ALBUM));
         album.setArtist(tag.getFirst(Mp4FieldKey.ALBUM_ARTIST));
         album.setGenre(tag.getFirst(FieldKey.GENRE));
-        album.setDate(LocalDate.parse(tag.getFirst(Mp4FieldKey.DAY)));
-
+        try {
+            album.setDate(LocalDate.parse(tag.getFirst(Mp4FieldKey.DAY)));
+        } catch (DateTimeParseException e) {
+            error("could not parse the date ''{0}'': {1}", tag.getFirst(Mp4FieldKey.DAY), e.getMessage());
+        }
         return album;
     }
 
