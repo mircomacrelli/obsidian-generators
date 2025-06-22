@@ -60,7 +60,7 @@ public final class AlbumGenerator {
         return (Mp4Tag) audioFile.getTag();
     }
 
-    private static Album initialieAlbum(Path path) {
+    private static Album initializeAlbum(Path path) {
         Mp4Tag tag = readTag(path);
 
         var album = new Album();
@@ -101,7 +101,7 @@ public final class AlbumGenerator {
         var files = searchFiles(inputDirectory);
         notEmpty(files, "not m4a files found");
 
-        var album = initialieAlbum(files.iterator().next());
+        var album = initializeAlbum(files.iterator().next());
         for (var file : files) {
             isReadable(file, "current track");
 
