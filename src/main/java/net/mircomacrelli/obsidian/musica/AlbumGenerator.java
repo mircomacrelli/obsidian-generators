@@ -98,6 +98,8 @@ public final class AlbumGenerator {
         isDirectory(inputDirectory, "<input directory>");
         isReadable(inputDirectory, "<input directory>");
 
+        System.out.println("Input directory: " + inputDirectory);
+
         var outputDirectory = Paths.get(args[1]);
         isDirectory(outputDirectory, "<output directory>");
         isWritable(outputDirectory, "<output directory>");
