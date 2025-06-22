@@ -6,6 +6,7 @@ import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE;
+import static net.mircomacrelli.obsidian.utils.Obsidian.escapeOpenBracket;
 import static net.mircomacrelli.obsidian.utils.Obsidian.escapeString;
 import static net.mircomacrelli.obsidian.utils.Obsidian.sanitizePath;
 import static net.mircomacrelli.obsidian.utils.Obsidian.quoteBlock;
@@ -89,7 +90,7 @@ final class Template {
                 if (lastTrack > 0 && (lastTrack + 1) != track.getNumber()) {
                     body.append('\n');
                 }
-                body.append(track.getNumber()).append(". ").append(track.getTitle());
+                body.append(track.getNumber()).append(". ").append(escapeOpenBracket(track.getTitle()));
                 if (!track.getArtist().equals(album.getArtist())) {
                     body.append(" _by_ ").append(createAuthorLink(seenAuthors, album.getArtist(), track.getArtist()));
                 }
