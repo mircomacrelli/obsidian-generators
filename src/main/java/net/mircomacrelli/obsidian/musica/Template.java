@@ -85,7 +85,9 @@ final class Template {
             int lastTrack = 0;
             for (var track : disk.getTracks()) {
                 if (lastTrack > 0 && (lastTrack + 1) != track.getNumber()) {
-                    body.append('\n');
+                    for (int i = lastTrack + 1; i < track.getNumber(); i++) {
+                        body.append(track.getNumber()).append(". ~").append('\n');
+                    }
                 }
                 body.append(track.getNumber()).append(". ").append(escapeOpenBracket(track.getTitle()));
                 if (!track.getArtist().equals(album.getArtist())) {
