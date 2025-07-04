@@ -23,8 +23,15 @@ public final class Obsidian {
         return temp;
     }
 
-    public static String escapeString(String s) {
-        if (s.contains(":")) {
+    public static String escapeSingleQuote(String s) {
+        if (s.contains("'")&& !s.startsWith("\"")) {
+            return '"' + s + '"';
+        }
+        return s;
+    }
+
+    public static String escapeColon(String s) {
+        if (s.contains(":") && !s.startsWith("\"")) {
             return '"' + s + '"';
         }
         return s;
@@ -36,5 +43,14 @@ public final class Obsidian {
 
     public static String escapeOpenBracket(String s) {
         return OPEN_BRACKET.matcher(s).replaceAll("\\\\[");
+    }
+
+    public static String escapeNumbers(String s) {
+        for (var c : s.toCharArray()) {
+            if (!Character.isDigit(c)) {
+                return s;
+            }
+        }
+        return '"' + s + '"';
     }
 }

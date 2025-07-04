@@ -6,10 +6,7 @@ import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE;
-import static net.mircomacrelli.obsidian.utils.Obsidian.escapeOpenBracket;
-import static net.mircomacrelli.obsidian.utils.Obsidian.escapeString;
-import static net.mircomacrelli.obsidian.utils.Obsidian.sanitizePath;
-import static net.mircomacrelli.obsidian.utils.Obsidian.quoteBlock;
+import static net.mircomacrelli.obsidian.utils.Obsidian.*;
 
 
 final class Template {
@@ -62,7 +59,7 @@ final class Template {
 
         body.append("---").append('\n')
             .append("aliases:").append('\n')
-            .append("  - ").append(album.getTitle()).append('\n')
+            .append("  - ").append(escapeNumbers(escapeOpenBracket(escapeSingleQuote(album.getTitle())))).append('\n')
             .append("artist: \"[[").append(sanitizePath(album.getArtist())).append("]]\"").append('\n')
             .append("bought: false").append('\n')
             .append("cover: \"[[").append(sanitizePath(album.getArtist() + " - " + album.getTitle())).append(".avif").append("]]\"").append('\n')
@@ -71,10 +68,10 @@ final class Template {
             .append("listened: false").append('\n')
             .append("price:").append('\n')
             .append("rating:").append('\n')
-            .append("title: ").append(escapeString(album.getTitle())).append('\n')
+            .append("title: ").append(escapeSingleQuote(escapeColon(album.getTitle()))).append('\n')
             .append("---").append('\n');
 
-        body.append("# ").append(album.getTitle()).append('\n');
+        body.append("# ").append(escapeOpenBracket(album.getTitle())).append('\n');
 
         body.append('\n').append("## Tracce").append('\n');
 
@@ -104,7 +101,7 @@ final class Template {
             for (var disk : album.getDisks()) {
                 for (var track : disk.getTracks()) {
                     if (!track.getLyrics().isBlank()) {
-                        body.append('\n').append("### ").append(track.getTitle()).append('\n').append('\n')
+                        body.append('\n').append("### ").append(escapeOpenBracket(track.getTitle())).append('\n').append('\n')
                             .append(quoteBlock(track.getLyrics())).append('\n');
                     }
                 }
