@@ -16,7 +16,7 @@ final class Template {
     private Template() {
     }
 
-    private static String createAuthorLink(Set<String> seenAuthors, String albumArtist, String authors) {
+    private static String createAuthorLink(Set<? super String> seenAuthors, String albumArtist, String authors) {
         String[] first = AMPERSAND.split(authors);
         String[] second = COMMA.split(first[0]);
 
