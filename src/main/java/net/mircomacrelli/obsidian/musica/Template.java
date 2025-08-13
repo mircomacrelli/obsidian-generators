@@ -31,6 +31,11 @@ final class Template {
 
         first[0] = String.join(", ", second);
 
+        if (!seenAuthors.contains(first[0])) {
+            seenAuthors.add(first[0]);
+            first[0] = "[[" + first[0] + "]]";
+        }
+
         if (first.length == 2 && !albumArtist.equals(first[1])) {
             if (!seenAuthors.contains(first[1])) {
                 seenAuthors.add(first[1]);
@@ -76,6 +81,7 @@ final class Template {
         body.append('\n').append("## Tracce").append('\n');
 
         var seenAuthors = new TreeSet<String>();
+        seenAuthors.add(album.getArtist());
         for (var disk : album.getDisks()) {
             if (album.getDisks().size() > 1) {
                 body.append('\n').append("### Disco ").append(disk.getNumber()).append('\n');
