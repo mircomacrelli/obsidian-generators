@@ -7,6 +7,7 @@ import org.jaudiotagger.audio.exceptions.CannotReadException;
 import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
+import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 import org.jaudiotagger.tag.mp4.Mp4FieldKey;
 import org.jaudiotagger.tag.mp4.Mp4Tag;
@@ -38,10 +39,18 @@ public final class AlbumGenerator {
         return path.getFileName().toString().toLowerCase().endsWith(".m4a");
     }
 
+    private static boolean isMp3File(Path path) {
+        return path.getFileName().toString().toLowerCase().endsWith(".mp3");
+    }
+
+    private static boolean isM4aOrMp3File(Path path) {
+        return isMp3File(path) || isM4aFile(path);
+    }
+
     private static Set<Path> searchFiles(Path directory) {
         try (var stream = Files.list(directory)) {
             return stream.filter(Files::isRegularFile)
-                         .filter(AlbumGenerator::isM4aFile)
+                         .filter(AlbumGenerator::isM4aOrMp3File)
                          .collect(toUnmodifiableSet());
         } catch (IOException e) {
             error("could not list files in directory ''{0}'': {1}", directory, e.getMessage());
@@ -49,7 +58,7 @@ public final class AlbumGenerator {
         return emptySet();
     }
 
-    private static Mp4Tag readTag(Path path) {
+    private static Tag readTag(Path path) {
         isReadable(path, "track");
         AudioFile audioFile = null;
         try {
@@ -58,36 +67,83 @@ public final class AlbumGenerator {
             error("could not read the tag from the file ''{0}'': {1}", path, e.getMessage());
         }
         //noinspection DataFlowIssue
-        return (Mp4Tag) audioFile.getTag();
+        return audioFile.getTag();
+    }
+
+    private static String getFirstValue(Path path, Tag tag, FieldKey fieldKey, Mp4FieldKey mp4FieldKey) {
+        if (isMp3File(path)) {
+            return tag.getFirst(fieldKey);
+        }
+        return ((Mp4Tag)tag).getFirst(mp4FieldKey);
+    }
+
+    private static String getAlbum(Path path, Tag tag) {
+        return getFirstValue(path, tag, FieldKey.ALBUM, Mp4FieldKey.ALBUM);
+    }
+
+    private static String getAlbumArtist(Path path, Tag tag) {
+        return getFirstValue(path, tag, FieldKey.ALBUM_ARTIST, Mp4FieldKey.ALBUM_ARTIST);
+    }
+
+    private static String getGenre(Path path, Tag tag) {
+        return getFirstValue(path, tag, FieldKey.GENRE, Mp4FieldKey.GENRE);
+    }
+
+    private static String getDate(Path path, Tag tag) {
+        return getFirstValue(path, tag, FieldKey.YEAR, Mp4FieldKey.DAY);
+    }
+
+    private static String getArtist(Path path, Tag tag) {
+        return getFirstValue(path, tag, FieldKey.ARTIST, Mp4FieldKey.ARTIST);
+    }
+
+    private static String getTitle(Path path, Tag tag) {
+        return getFirstValue(path, tag, FieldKey.TITLE, Mp4FieldKey.TITLE);
+    }
+
+    private static String getLyrics(Path path, Tag tag) {
+        return getFirstValue(path, tag, FieldKey.LYRICS, Mp4FieldKey.LYRICS);
+    }
+
+    private static Short getTrackNo(Path path, Tag tag) {
+        if (isMp3File(path)) {
+            return Short.valueOf(tag.getFirst(FieldKey.TRACK));
+        }
+        return ((Mp4TrackField)((Mp4Tag)tag).getFirstField(Mp4FieldKey.TRACK)).getTrackNo();
     }
 
     private static Album initializeAlbum(Path path) {
-        Mp4Tag tag = readTag(path);
+        Tag tag = readTag(path);
 
         var album = new Album();
-        album.setTitle(tag.getFirst(Mp4FieldKey.ALBUM));
-        album.setArtist(tag.getFirst(Mp4FieldKey.ALBUM_ARTIST));
-        album.setGenre(tag.getFirst(FieldKey.GENRE));
+        album.setTitle(getAlbum(path, tag));
+        album.setArtist(getAlbumArtist(path, tag));
+        album.setGenre(getGenre(path, tag));
         try {
-            album.setDate(LocalDate.parse(tag.getFirst(Mp4FieldKey.DAY)));
+            album.setDate(LocalDate.parse(getDate(path, tag)));
         } catch (DateTimeParseException e) {
-            error("could not parse the date ''{0}'': {1}", tag.getFirst(Mp4FieldKey.DAY), e.getMessage());
+            error("could not parse the date ''{0}'': {1}", getDate(path, tag), e.getMessage());
         }
         return album;
     }
 
-    private static Track createTrack(Mp4Tag tag) {
+    private static Track createTrack(Path path, Tag tag) {
         var track = new Track();
-        track.setArtist(tag.getFirst(Mp4FieldKey.ARTIST));
-        track.setTitle(tag.getFirst(Mp4FieldKey.TITLE));
-        track.setNumber(((Mp4TrackField)tag.getFirstField(Mp4FieldKey.TRACK)).getTrackNo());
-        track.setLyrics(tag.getFirst(Mp4FieldKey.LYRICS));
+        track.setArtist(getArtist(path, tag));
+        track.setTitle(getTitle(path, tag));
+        track.setNumber(getTrackNo(path, tag));
+        track.setLyrics(getLyrics(path, tag));
 
         return track;
     }
 
-    private static Disk getDisk(Album album, Mp4Tag tag) {
-        int diskNumber = ((Mp4DiscNoField)tag.getFirstField(Mp4FieldKey.DISCNUMBER)).getDiscNo();
+    private static Disk getDisk(Path path, Album album, Tag tag) {
+        int diskNumber;
+        if (isMp3File(path)) {
+            diskNumber = Integer.parseInt(tag.getFirst(FieldKey.DISC_NO));
+        } else {
+            diskNumber = ((Mp4DiscNoField)((Mp4Tag)tag).getFirstField(Mp4FieldKey.DISCNUMBER)).getDiscNo();
+        }
         return album.getDisk(diskNumber);
     }
 
@@ -98,6 +154,7 @@ public final class AlbumGenerator {
         isDirectory(inputDirectory, "<input directory>");
         isReadable(inputDirectory, "<input directory>");
 
+        //noinspection UseOfSystemOutOrSystemErr
         System.out.println("Input directory: " + inputDirectory);
 
         var outputDirectory = Paths.get(args[1]);
@@ -112,8 +169,8 @@ public final class AlbumGenerator {
             isReadable(file, "current track");
 
             var tag = readTag(file);
-            var disk = getDisk(album, tag);
-            disk.addTrack(createTrack(tag));
+            var disk = getDisk(file, album, tag);
+            disk.addTrack(createTrack(file, tag));
         }
 
         var fileName = sanitizePath(album.getArtist() + " - " + album.getTitle()) + ".md";
