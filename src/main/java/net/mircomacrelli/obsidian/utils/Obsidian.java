@@ -37,6 +37,13 @@ public final class Obsidian {
         return s;
     }
 
+    public static String quoteColon(String s) {
+        if (!s.startsWith("\"") && s.contains(":")) {
+            return '"' + s + '"';
+        }
+        return s;
+    }
+
     public static String quoteBlock(String lyrics) {
         return escapeOpenBracket(START_OF_LINE.matcher(lyrics).replaceAll("> "));
     }

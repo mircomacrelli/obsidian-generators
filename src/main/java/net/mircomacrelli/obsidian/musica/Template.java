@@ -75,7 +75,7 @@ final class Template {
 
         body.append("---").append('\n')
             .append("aliases:").append('\n')
-            .append("  - ").append(escapeNumbers(escapeOpenBracket(escapeSingleQuote(album.getTitle())))).append('\n')
+            .append("  - ").append(quoteColon(escapeNumbers(escapeOpenBracket(escapeSingleQuote(album.getTitle()))))).append('\n')
             .append("artist: \"[[").append(sanitizePath(album.getArtist())).append("]]\"").append('\n')
             .append("bought: false").append('\n')
             .append("cover: \"[[").append(sanitizePath(album.getArtist() + " - " + album.getTitle())).append(".avif").append("]]\"").append('\n')
