@@ -1,6 +1,7 @@
 package net.mircomacrelli.obsidian.musica;
 
 
+import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
@@ -13,34 +14,44 @@ final class Template {
     private static final Pattern AMPERSAND = Pattern.compile(" & ");
     private static final Pattern COMMA = Pattern.compile(", ");
 
+    private static final String[] EMPTY = new String[0];
+
     private Template() {
     }
 
-    private static String createAuthorLink(Set<? super String> seenAuthors, String albumArtist, String authors) {
+    private static String createAuthorLink(Set<? super String> seenAuthors, String authors) {
         String[] first = AMPERSAND.split(authors);
         String[] second = COMMA.split(first[0]);
 
-        for (int i = 1; i < second.length; i++) {
-            if (!albumArtist.equals(second[i])) {
-                if (!seenAuthors.contains(second[i])) {
-                    seenAuthors.add(second[i]);
-                    second[i] = "[[" + second[i] + "]]";
+        if (Arrays.equals(first, second)) {
+            second = EMPTY;
+        }
+
+        for (int i = 1; i < first.length; i++) {
+            if (!seenAuthors.contains(first[i])) {
+                seenAuthors.add(first[i]);
+                first[i] = "[[" + first[i] + "]]";
+            }
+        }
+
+        if (!Arrays.equals(second, EMPTY)) {
+            for (int j = 0; j < second.length; j++) {
+                if (!seenAuthors.contains(second[j])) {
+                    seenAuthors.add(second[j]);
+                    second[j] = "[[" + second[j] + "]]";
                 }
             }
+
+            first[0] = String.join(", ", second);
         }
 
-        first[0] = String.join(", ", second);
-
-        if (!seenAuthors.contains(first[0])) {
-            seenAuthors.add(first[0]);
-            first[0] = "[[" + first[0] + "]]";
-        }
-
-        if (first.length == 2 && !albumArtist.equals(first[1])) {
-            if (!seenAuthors.contains(first[1])) {
-                seenAuthors.add(first[1]);
-                first[1] = "[[" + first[1] + "]]";
+        if (first.length > 2) {
+            StringBuilder sb = new StringBuilder(512);
+            for (int i = 0; i < first.length - 1; i++) {
+                sb.append(first[i]).append(", ");
             }
+            sb.append(" & ").append(first[first.length - 1]);
+            return sb.toString();
         }
 
         return String.join(" & ", first);
@@ -97,7 +108,7 @@ final class Template {
                 }
                 body.append(track.getNumber()).append(". ").append(escapeOpenBracket(track.getTitle()));
                 if (!track.getArtist().equals(album.getArtist())) {
-                    body.append(" _by_ ").append(createAuthorLink(seenAuthors, album.getArtist(), track.getArtist()));
+                    body.append(" _by_ ").append(createAuthorLink(seenAuthors, track.getArtist()));
                 }
                 body.append('\n');
                 lastTrack = track.getNumber();
